@@ -11,17 +11,16 @@ class Window:
         self._win_height = height * tile_size
         self._tile_height = self._win_height / self._tiles_vertical
         self._tile_width = self._win_width / self._tiles_horizontal
-        self._tiles_diagonal = ((width - 0) ** 2 + (height - 1) ** 2) ** (1 / 2)
 
         self._speed = speed
         self._mode = mode
-        self._win = pygame.display.set_mode((self._win_width, self._win_height + self._vertical_buffer))
+        self._window = pygame.display.set_mode((self._win_width, self._win_height + self._vertical_buffer))
 
         pygame.font.init()
-        self._font = pygame.font.SysFont('Comic Sans MS', tile_size // 2)
+        self._font = pygame.font.SysFont('Consolas', tile_size // 2)
 
     def render_menu(self):
-        pygame.draw.rect(self._win, color.grey,
+        pygame.draw.rect(self._window, color.grey,
                          (0, 0, self._win_width / 2, self._tile_height), 10)
 
     def set_mode(self, mode):
@@ -36,7 +35,7 @@ class Window:
 
     def clear(self):
         if self._mode == 'Visual':
-            self._win.fill((0, 0, 0))
+            self._window.fill((0, 0, 0))
 
     def get_dimensions(self):
         return self._tiles_horizontal, self._tiles_vertical
@@ -55,9 +54,14 @@ class Window:
 
     def draw_player(self, player):
         x, y = self.tile_to_window_coords(player.get_coords())
-        pygame.draw.rect(self._win, color.green, (x, y, self._tile_width, self._tile_height))
+        pygame.draw.rect(self._window, color.green, (x, y, self._tile_width, self._tile_height))
 
     def draw_obstacles(self, obstacles):
         for obstacle in obstacles:
             x, y = self.tile_to_window_coords(obstacle)
-            pygame.draw.rect(self._win, color.red, (x, y, self._tile_width, self._tile_height))
+            pygame.draw.rect(self._window, color.red, (x, y, self._tile_width, self._tile_height))
+
+    def draw_finish(self):
+        for i in range(self._tiles_horizontal):
+            x, y = self.tile_to_window_coords((i, 0))
+            pygame.draw.rect(self._window, color.dark_blue, (x, y, self._tile_width, self._tile_height))

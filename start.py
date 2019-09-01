@@ -3,7 +3,7 @@ from player import Player
 from window import Window
 from game import Game
 
-window = Window(tile_size=30, width=7, height=10)
+window = Window(tile_size=30, width=7, height=11)
 player = Player(window)
 game = Game(window, player)
 
@@ -21,6 +21,7 @@ games_number = 5000
 
 def main():
     game.setup()
+    game.play()
     while True:
         pass
 
