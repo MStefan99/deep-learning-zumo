@@ -5,7 +5,7 @@ from game import Game
 
 window = Window(tile_size=30, width=7, height=11)
 player = Player(window)
-game = Game(window, player)
+game = Game(window, player, verbose=True)
 
 
 # If skip_training value is true, a pre-made file with matching number of games will be automatically loaded,

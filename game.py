@@ -8,10 +8,11 @@ from player import Player
 
 
 class Game:
-    def __init__(self, window: Window, player: Player):
+    def __init__(self, window: Window, player: Player, verbose=False):
         self._window = window
         self._player = player
         self._obstacles = []
+        self._verbose = verbose
 
     def reset(self):
         self._obstacles = []
@@ -24,12 +25,21 @@ class Game:
         self._draw_ui()
 
     def step(self):
-        crashed = False
+        info = {}
+        crashed = self._crashed()
         self._draw_ui()
 
-        if self._crashed():
-            crashed = True
+        info['won'] = self._won()
+        info['coords'] = self._player.get_coords()
+        observation = self._observe()
+        reward = self._get_reward()
+
+        if self._verbose:
+            print(f'Observation: {observation}, reward: {reward}, crashed: {crashed}, info: {info}')
+
+        if self._crashed() or self._won():
             self.reset()
+        return observation, reward, crashed, info
 
     def play(self):
         while True:
@@ -57,9 +67,15 @@ class Game:
         else:
             return False
 
+    def _won(self):
+        if self._player.get_coords()[1] == 0:
+            return True
+        else:
+            return False
+
     def _generate_obstacles(self, count):
         for _ in range(count):
-            x, y = random.randint(1, 6), random.randint(2, 8)
+            x, y = random.randint(1, 5), random.randint(3, 8)
             self._add_obstacle((x, y))
             direction = random.randint(0, 3)
             if direction == 0:
@@ -77,6 +93,27 @@ class Game:
 
     def _get_obstacles(self):
         return self._obstacles
+
+    def _get_reward(self):
+        lost = self._crashed()
+        won = self._won()
+        last_action = self._player.get_last_action()
+
+        if won:
+            return 1
+        elif lost:
+            return -1
+        elif last_action == 0:
+            return 0.1
+        elif last_action == 2:
+            return -0.3
+        else:
+            return -0.1
+
+    def _observe(self):
+        observation = [0, 0, 0, 0]
+        # TODO: implement observation
+        return observation
 
     def _draw_ui(self):
         self._window.clear()

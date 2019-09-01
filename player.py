@@ -1,5 +1,4 @@
 import pygame
-import colors as color
 from window import Window
 
 
@@ -9,6 +8,7 @@ class Player:
         pygame.init()
         pygame.display.set_caption("THE GAME!")
         self._x, self._y = 0, 0
+        self._action = 0
 
         self.reset()
 
@@ -20,6 +20,7 @@ class Player:
         return self._x, self._y
 
     def move(self, action):
+        self._action = action
         if action == 0:
             self._y = self._y - 1
         if action == 1:
@@ -28,3 +29,6 @@ class Player:
             self._y = self._y + 1
         if action == 3:
             self._x = self._x - 1
+
+    def get_last_action(self):
+        return self._action

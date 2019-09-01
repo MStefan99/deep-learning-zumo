@@ -21,7 +21,9 @@ class Window:
 
     def render_menu(self):
         pygame.draw.rect(self._window, color.grey,
-                         (0, 0, self._win_width / 2, self._tile_height), 10)
+                         (0, 0, self._win_width // 2, self._tile_height), 10)
+        pygame.draw.rect(self._window, color.grey,
+                         (self._win_width // 2, 0, self._win_width // 2, self._tile_height), 10)
 
     def set_mode(self, mode):
         if mode == 'Visual':
