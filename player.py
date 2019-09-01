@@ -1,7 +1,5 @@
 import pygame
-
-green = (0, 255, 0)
-red = (255, 0, 0)
+import colors as color
 
 
 class Player:
@@ -10,8 +8,8 @@ class Player:
         pygame.init()
         pygame.display.set_caption("ASDAAJLDK")
 
-        x, y = 0, 0
-        self.color = red
+        self._x, self._y = 0, 0
+        self.color = color.red
 
-
-
+    def get_coords(self):
+        return self._x, self._y

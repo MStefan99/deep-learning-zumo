@@ -1,9 +1,12 @@
 from DQNAgent import DQNAgent
-from snake import Snake
+from player import Player
 from window import Window
+from game import Game
 
-window = Window(tile_size=12, width=50, height=50)
-snake = Snake(window)
+window = Window(tile_size=30, width=7, height=10)
+player = Player(window)
+game = Game(window, player)
+
 
 # If skip_training value is true, a pre-made file with matching number of games will be automatically loaded,
 # if present. Otherwise the default file with 5000 games will be loaded.
@@ -17,10 +20,9 @@ games_number = 5000
 
 
 def main():
-    a = DQNAgent(window, snake, games_number, skip_training=skip_training)
-
-    a.train(games_number)
-    a.play()
+    game.setup()
+    while True:
+        pass
 
 
 if __name__ == '__main__':
