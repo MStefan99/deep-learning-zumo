@@ -5,7 +5,7 @@ from game import Game
 
 window = Window(tile_size=30, width=7, height=11)
 player = Player(window)
-game = Game(window, player, verbose=True)
+game = Game(window, player, verbose=False)
 
 
 # If skip_training value is true, a pre-made file with matching number of games will be automatically loaded,
@@ -21,9 +21,11 @@ games_number = 5000
 
 def main():
     game.setup()
-    game.play()
-    while True:
-        pass
+    # game.play()
+
+    agent = DQNAgent(game, games_number, skip_training)
+    agent.train(games_number)
+    agent.play()
 
 
 if __name__ == '__main__':

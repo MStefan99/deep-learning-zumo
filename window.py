@@ -3,7 +3,7 @@ import colors as color
 
 
 class Window:
-    def __init__(self, tile_size, width, height, speed=20, mode='Visual'):
+    def __init__(self, tile_size, width, height, speed=10, mode='Visual'):
         self._tiles_horizontal = width
         self._tiles_vertical = height
         self._vertical_buffer = tile_size
@@ -39,11 +39,14 @@ class Window:
         if self._mode == 'Visual':
             self._window.fill((0, 0, 0))
 
+    def delay(self, delay):
+        if self._mode == 'Visual':
+            pygame.time.delay(1000 // self._speed)
+
     def get_dimensions(self):
         return self._tiles_horizontal, self._tiles_vertical
 
     def set_speed(self, speed):
-
         if 0 <= speed <= 1000:
             self._speed = speed
 

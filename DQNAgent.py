@@ -6,17 +6,18 @@ import numpy as np
 from keras import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
+from game import Game
 
 from log import log_process
 
 file_prefix = 'weights/weights_'
 default_games = 5000
 files = 10
-debug = False
+debug = True
 
 
 class DQNAgent:
-    def __init__(self, window, snake, games_number, skip_training=False):
+    def __init__(self, game: Game, games_number, skip_training=False):
         self._gamma = 0.95
         self._epsilon_start = 1.0
         self._epsilon = self._epsilon_start
@@ -25,9 +26,8 @@ class DQNAgent:
         self._games_number = games_number
         self._skip_training = skip_training
 
-        self._window = window
-        self._snake = snake
-        self._input_nodes = len(self._snake.reset())
+        self._game = game
+        self._input_nodes = len(self._game.reset())
         self._output_nodes = 4
         self._model = self.build_model(self._input_nodes,
                                        self._output_nodes)
@@ -35,15 +35,15 @@ class DQNAgent:
     def train(self, games):
         if not self._skip_training:
             start = time()
+            self._game.set_window_mode('Train')
 
             for game in range(games):
-                score = 0
+                won = False
                 steps = 0
                 reward_total = 0
                 done = False
                 training_data = []
-                prev_observation = observation = self._snake.reset()
-                self._window.generate_food_for_snake(self._snake.get_snake())
+                prev_observation = observation = self._game.reset()
 
                 if self._epsilon > self._epsilon_min:
                     self._epsilon = self._epsilon_start * (1 - game / games)
@@ -53,20 +53,20 @@ class DQNAgent:
                         action = random.randrange(0, self._output_nodes)
                     else:
                         action = np.argmax(self._model.predict(np.array(observation).reshape([-1, self._input_nodes])))
-                    observation, reward, done, info = self._snake.step(action)
+                    observation, reward, done, info = self._game.step(action)
 
                     training_data.append([prev_observation, action, reward, observation, done])
                     prev_observation = observation
 
-                    if info['Eaten']:
-                        score += 1
+                    if info['won']:
+                        won = True
                     reward_total += reward
                     steps += 1
 
                 if not debug:
                     log_process('Training, please wait...', game, games, 50,
                                 time_start=start, time_now=time(), time_correction=2,
-                                info=f'Score: {score} in {steps} steps, '
+                                info=f'{"Won" if won else "Lost"} in {steps} steps, '
                                 f'Avg reward: {round(reward_total / game, 2) if game > 0 else 0}, '
                                 f'Epsilon: {round(self._epsilon, 2)}.')
 
@@ -76,13 +76,13 @@ class DQNAgent:
                     self._model.save_weights(f'{file_prefix}{game + 1}', overwrite=True)
 
                 if debug:
-                    print(f'Game {game} finished. Score: {round(score, 2)} in {steps} steps, ' +
+                    print(f'Game {game} finished. {"Won" if won else "Lost"} in {steps} steps, ' +
                           f'eps: {round(self._epsilon, 2)}')
 
     def replay(self, training_data):
         for prev_state, action, reward, state, done in training_data:
             prev_state = np.reshape(prev_state, [1, self._input_nodes])
-            state = np.reshape(prev_state, [1, self._input_nodes])
+            state = np.reshape(state, [1, self._input_nodes])
 
             target = reward
             if not done:
@@ -102,6 +102,7 @@ class DQNAgent:
         return model
 
     def play(self):
+        self._game.set_window_mode('Visual')
         game = 0
 
         if self._skip_training:
@@ -115,23 +116,20 @@ class DQNAgent:
                 print('Warning, no model file found and default is unavailable! Playing with random model!')
 
         while True:
-            observation = self._snake.reset()
-            self._window.generate_food_for_snake(self._snake.get_snake())
-            score = 0
-            steps = 0
+            observation = self._game.reset()
+            won = False
             done = False
+            steps = 0
 
             while not done:
                 action = np.argmax(self._model.predict(np.array(observation).reshape([-1, self._input_nodes])))
-                observation, reward, done, info = self._snake.step(action)
+                observation, reward, done, info = self._game.step(action)
 
-                if info['Eaten']:
-                    score += 1
+                if info['won']:
+                    won = True
 
-                self._window.update()
-                self._window.delay()
-                self._window.clear()
+                self._game.delay(10)
                 steps += 1
 
             game += 1
-            print(f'Game {game} finished. Score: {round(score, 2)} in {steps} steps.')
+            print(f'Game {game} finished. {"Won" if won else "Lost"} in {steps} steps.')

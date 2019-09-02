@@ -1,8 +1,5 @@
-import collections
 import random
-
 import pygame
-
 from window import Window
 from player import Player
 
@@ -19,14 +16,17 @@ class Game:
         self._player.reset()
 
         self.setup()
+        return self._observe()
 
     def setup(self):
         self._generate_obstacles(4)
         self._draw_ui()
+        # TODO: Interactive GUI for setting obstacles
 
-    def step(self):
+    def step(self, action):
         info = {}
-        crashed = self._crashed()
+        self._player.move(action)
+        done = self._done()
         self._draw_ui()
 
         info['won'] = self._won()
@@ -35,11 +35,11 @@ class Game:
         reward = self._get_reward()
 
         if self._verbose:
-            print(f'Observation: {observation}, reward: {reward}, crashed: {crashed}, info: {info}')
+            print(f'Observation: {observation}, reward: {reward}, done: {done}, info: {info}')
 
-        if self._crashed() or self._won():
+        if self._done() or self._won():
             self.reset()
-        return observation, reward, crashed, info
+        return observation, reward, done, info
 
     def play(self):
         while True:
@@ -55,13 +55,18 @@ class Game:
                         action = 2
                     if event.key == pygame.K_LEFT:
                         action = 3
-                    self._player.move(action)
-                    self.step()
+                    self.step(action)
 
-    def _crashed(self):
+    def delay(self, delay):
+        self._window.delay(delay)
+
+    def set_window_mode(self, mode):
+        self._window.set_mode(mode)
+
+    def _done(self):
         coords = self._player.get_coords()
         if (coords[0] < 0 or coords[0] > self._window.get_dimensions()[0] - 1) \
-                or (coords[1] < 0 or coords[1] > self._window.get_dimensions()[1] - 1) \
+                or (coords[1] < 1 or coords[1] > self._window.get_dimensions()[1] - 1) \
                 or (coords in self._obstacles):
             return True
         else:
@@ -95,12 +100,12 @@ class Game:
         return self._obstacles
 
     def _get_reward(self):
-        lost = self._crashed()
+        lost = self._done()
         won = self._won()
         last_action = self._player.get_last_action()
 
         if won:
-            return 1
+            return 5
         elif lost:
             return -1
         elif last_action == 0:
@@ -111,9 +116,31 @@ class Game:
             return -0.1
 
     def _observe(self):
-        observation = [0, 0, 0, 0]
-        # TODO: implement observation
+        observation = self._obstacle_next()
+
         return observation
+
+    def _obstacle_next(self):
+        data = [0] * 4
+        coords = self._player.get_coords()
+
+        if self._is_obstacle((coords[0], coords[1] - 1)):
+            data[0] = 1
+        if self._is_obstacle((coords[0] + 1, coords[1])):
+            data[1] = 1
+        if self._is_obstacle((coords[0], coords[1] + 1)):
+            data[2] = 1
+        if self._is_obstacle((coords[0] - 1, coords[1])):
+            data[3] = 1
+        return data
+
+    def _is_obstacle(self, tile):
+        if (tile[0] < 0 or tile[0] > self._window.get_dimensions()[0] - 1) \
+                or (tile[1] < 0 or tile[1] > self._window.get_dimensions()[1] - 1) \
+                or tile in self._obstacles:
+            return True
+        else:
+            return False
 
     def _draw_ui(self):
         self._window.clear()
@@ -122,3 +149,9 @@ class Game:
         self._window.draw_player(self._player)
         self._window.draw_finish()
         self._window.update()
+
+    def get_window(self):
+        return self._window
+
+    def get_player(self):
+        return self._player
