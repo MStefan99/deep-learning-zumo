@@ -98,8 +98,8 @@ class Game:
 
     def _done(self):
         coords = self._player.get_coords()
-        if (coords[0] < 0 or coords[0] > self._window.get_dimensions()[0] - 1) \
-                or (coords[1] < 1 or coords[1] > self._window.get_dimensions()[1] - 1) \
+        if (coords[0] < 0 or coords[0] > self._window.get_size()[0] - 1) \
+                or (coords[1] < 1 or coords[1] > self._window.get_size()[1] - 1) \
                 or (coords in self._obstacles):
             return True
         else:
