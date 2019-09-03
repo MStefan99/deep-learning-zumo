@@ -9,8 +9,8 @@ class Window:
         self._vertical_buffer = tile_size
         self._win_width = width * tile_size
         self._win_height = height * tile_size
-        self._tile_height = self._win_height / self._tiles_vertical
-        self._tile_width = self._win_width / self._tiles_horizontal
+        self._tile_height = self._win_height // self._tiles_vertical
+        self._tile_width = self._win_width // self._tiles_horizontal
 
         self._speed = speed
         self._mode = mode
@@ -44,6 +44,12 @@ class Window:
             pygame.time.delay(1000 // self._speed)
 
     def get_dimensions(self):
+        return self._win_width, self._win_height
+
+    def get_tile_dimensions(self):
+        return self._tile_width, self._tile_height
+
+    def get_size(self):
         return self._tiles_horizontal, self._tiles_vertical
 
     def set_speed(self, speed):
@@ -54,7 +60,7 @@ class Window:
         return tile[0] * self._tile_width, tile[1] * self._tile_height + self._vertical_buffer
 
     def window_coords_to_tile(self, coords):
-        tile = coords[0] / self._tile_width, coords[1] - self._vertical_buffer / self._tile_height
+        tile = coords[0] // self._tile_width, (coords[1] - self._vertical_buffer) // self._tile_height
         return tile
 
     def draw_player(self, player):

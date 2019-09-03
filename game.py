@@ -5,29 +5,60 @@ from player import Player
 
 
 class Game:
-    def __init__(self, window: Window, player: Player, verbose=False):
+    def __init__(self, window: Window, player: Player, verbose=False, mode='random'):
         self._window = window
         self._player = player
+        self._obstacles_manual = []
         self._obstacles = []
         self._verbose = verbose
+        self._mode = mode
 
     def reset(self):
-        self._obstacles = []
-        self._player.reset()
+        if self._mode == 'random':
+            return self.new_random_game()
+        else:
+            return self.new_manual_game()
 
-        self.setup()
+    def new_random_game(self):
+        self._obstacles = []
+        self._generate_obstacles(4)
+        self._player.reset()
+        self._draw_ui()
+
+        return self._observe()
+
+    def new_manual_game(self):
+        self._obstacles = self._obstacles_manual
+        self._player.reset()
+        self._draw_ui()
+
         return self._observe()
 
     def setup(self):
-        self._generate_obstacles(4)
-        self._draw_ui()
-        # TODO: Interactive GUI for setting obstacles
+        self.new_manual_game()
+        while True:
+            button_pressed, pos = self._handle_buttons()
+            if button_pressed == 1:
+                return 0
+            elif button_pressed == 2:
+                self.reset()
+            elif button_pressed == 3:
+                tile = self._window.window_coords_to_tile(pos)
+                self._set_obstacle(tile)
+                self._obstacles_manual = self._obstacles
+                self._draw_ui()
 
     def step(self, action):
         info = {}
         self._player.move(action)
         done = self._done()
         self._draw_ui()
+
+        button_pressed = self._handle_buttons()
+        if button_pressed == 1:
+            self.setup()
+        elif button_pressed == 2:
+            self.reset()
 
         info['won'] = self._won()
         info['coords'] = self._player.get_coords()
@@ -96,8 +127,17 @@ class Game:
     def _add_obstacle(self, tile):
         self._obstacles.append(tile)
 
+    def _remove_obstacle(self, tile):
+        self._obstacles.remove(tile)
+
     def _get_obstacles(self):
         return self._obstacles
+
+    def _set_obstacle(self, tile):
+        if tile in self._obstacles:
+            self._remove_obstacle(tile)
+        else:
+            self._add_obstacle(tile)
 
     def _get_reward(self):
         lost = self._done()
@@ -150,8 +190,31 @@ class Game:
         self._window.draw_finish()
         self._window.update()
 
+    def _handle_buttons(self):
+        button_id = 0
+        events = pygame.event.get()
+        dim = self._window.get_dimensions()
+        tile_dim = self._window.get_tile_dimensions()
+        pos = (0, 0)
+
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                if pos[0] < dim[0] // 2 \
+                        and pos[1] < tile_dim[1]:
+                    button_id = 1
+                elif pos[0] > dim[0] // 2 \
+                        and pos[1] < tile_dim[1]:
+                    button_id = 2
+                else:
+                    button_id = 3
+        return button_id, pos
+
     def get_window(self):
         return self._window
 
     def get_player(self):
         return self._player
+
+    def set_mode(self, mode):
+        self._mode = mode

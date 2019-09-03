@@ -13,7 +13,7 @@ from log import log_process
 file_prefix = 'weights/weights_'
 default_games = 5000
 files = 10
-debug = True
+debug = False
 
 
 class DQNAgent:
