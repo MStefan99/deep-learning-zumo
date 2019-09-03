@@ -128,7 +128,7 @@ class DQNAgent:
                 if info['won']:
                     won = True
 
-                self._game.delay(10)
+                self._game.delay()
                 steps += 1
 
             game += 1

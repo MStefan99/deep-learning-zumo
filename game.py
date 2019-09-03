@@ -35,18 +35,20 @@ class Game:
         return self._observe()
 
     def setup(self):
+        self._window.set_state('Setup')
         self.new_manual_game()
         while True:
             button_pressed, pos = self._handle_buttons()
             if button_pressed == 1:
+                self._window.set_state('Run')
                 return 0
             elif button_pressed == 2:
-                self.reset()
+                self._obstacles = []
             elif button_pressed == 3:
                 tile = self._window.window_coords_to_tile(pos)
                 self._set_obstacle(tile)
-                self._obstacles_manual = self._obstacles
-                self._draw_ui()
+            self._obstacles_manual = self._obstacles
+            self._draw_ui()
 
     def step(self, action):
         info = {}
@@ -88,8 +90,8 @@ class Game:
                         action = 3
                     self.step(action)
 
-    def delay(self, delay):
-        self._window.delay(delay)
+    def delay(self):
+        self._window.delay()
 
     def set_window_mode(self, mode):
         self._window.set_mode(mode)

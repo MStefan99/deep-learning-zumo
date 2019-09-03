@@ -14,22 +14,41 @@ class Window:
 
         self._speed = speed
         self._mode = mode
-        self._window = pygame.display.set_mode((self._win_width, self._win_height + self._vertical_buffer))
+        self._state = 'Setup'
+        self._surface = pygame.display.set_mode((self._win_width, self._win_height + self._vertical_buffer))
 
         pygame.font.init()
-        self._font = pygame.font.SysFont('Consolas', tile_size // 2)
+        self._font = pygame.font.SysFont('consolas', tile_size // 2)
 
     def render_menu(self):
-        pygame.draw.rect(self._window, color.grey,
+        button1_color = color.green
+        button2_color = color.red
+
+        if self._state == 'Setup':
+            button1_text = self._font.render('Start', False, button1_color, color.black)
+        else:
+            button1_text = self._font.render('Setup', False, button1_color, color.black)
+        text1_rect = button1_text.get_rect()
+        text1_rect.center = (self._win_width // 4, self._tile_height // 2)
+        self._surface.blit(button1_text, text1_rect)
+
+        button2_text = self._font.render('Reset', False, button2_color, color.black)
+        text2_rect = button2_text.get_rect()
+        text2_rect.center = (3 * self._win_width // 4, self._tile_height // 2)
+        self._surface.blit(button2_text, text2_rect)
+
+        pygame.draw.rect(self._surface, button1_color,
                          (0, 0, self._win_width // 2, self._tile_height), 10)
-        pygame.draw.rect(self._window, color.grey,
+        pygame.draw.rect(self._surface, button2_color,
                          (self._win_width // 2, 0, self._win_width // 2, self._tile_height), 10)
 
     def set_mode(self, mode):
-        if mode == 'Visual':
-            self._mode = 'Visual'
-        elif mode == 'Train':
-            self._mode = 'Train'
+        if mode == 'Visual' or mode == 'Train':
+            self._mode = mode
+
+    def set_state(self, state):
+        if state == 'Setup' or state == 'Run':
+            self._state = state
 
     def update(self):
         if self._mode == 'Visual':
@@ -37,9 +56,9 @@ class Window:
 
     def clear(self):
         if self._mode == 'Visual':
-            self._window.fill((0, 0, 0))
+            self._surface.fill((0, 0, 0))
 
-    def delay(self, delay):
+    def delay(self):
         if self._mode == 'Visual':
             pygame.time.delay(1000 // self._speed)
 
@@ -65,14 +84,14 @@ class Window:
 
     def draw_player(self, player):
         x, y = self.tile_to_window_coords(player.get_coords())
-        pygame.draw.rect(self._window, color.green, (x, y, self._tile_width, self._tile_height))
+        pygame.draw.rect(self._surface, color.green, (x, y, self._tile_width, self._tile_height))
 
     def draw_obstacles(self, obstacles):
         for obstacle in obstacles:
             x, y = self.tile_to_window_coords(obstacle)
-            pygame.draw.rect(self._window, color.red, (x, y, self._tile_width, self._tile_height))
+            pygame.draw.rect(self._surface, color.red, (x, y, self._tile_width, self._tile_height))
 
     def draw_finish(self):
         for i in range(self._tiles_horizontal):
             x, y = self.tile_to_window_coords((i, 0))
-            pygame.draw.rect(self._window, color.dark_blue, (x, y, self._tile_width, self._tile_height))
+            pygame.draw.rect(self._surface, color.dark_blue, (x, y, self._tile_width, self._tile_height))
