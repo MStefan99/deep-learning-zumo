@@ -56,7 +56,7 @@ class Game:
         done = self._done()
         self._draw_ui()
 
-        button_pressed = self._handle_buttons()
+        button_pressed, _ = self._handle_buttons()
         if button_pressed == 1:
             self.setup()
         elif button_pressed == 2:
