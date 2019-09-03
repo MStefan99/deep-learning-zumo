@@ -13,7 +13,7 @@ class Player:
         self.reset()
 
     def reset(self):
-        size = self._window.get_dimensions()
+        size = self._window.get_size()
         self._x, self._y = size[0] // 2, size[1] - 1
 
     def get_coords(self):

@@ -13,7 +13,7 @@ from log import log_process
 file_prefix = 'weights/weights_'
 default_games = 5000
 files = 10
-debug = True
+debug = False
 
 
 class DQNAgent:
@@ -128,7 +128,7 @@ class DQNAgent:
                 if info['won']:
                     won = True
 
-                self._game.delay(10)
+                self._game.delay()
                 steps += 1
 
             game += 1
