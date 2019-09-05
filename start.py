@@ -12,7 +12,7 @@ game = Game(window, player, verbose=False)
 # if present. Otherwise the default file with 5000 games will be loaded.
 # You can see available values in the 'weights' folder.
 
-skip_training = True
+skip_training = False
 games_number = 1000
 
 
@@ -21,8 +21,11 @@ games_number = 1000
 
 def main():
     game.setup()
+    # game.play()
 
-    game.set_mode('random')
+    # game.set_mode('random')
+    game.set_mode('manual')
+
     agent = DQNAgent(game, games_number, skip_training)
     agent.train(games_number)
     game.set_mode('manual')
