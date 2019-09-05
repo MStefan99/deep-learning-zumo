@@ -84,6 +84,7 @@ fabric.properties
 .idea/sonarlint
 
 *.pyc
-venv/*
+venv
+weights
 
 # End of https://www.gitignore.io/api/pycharm
