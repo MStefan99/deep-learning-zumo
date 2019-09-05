@@ -21,7 +21,7 @@ class Game:
 
     def new_random_game(self):
         self._obstacles = []
-        self._generate_obstacles(4)
+        self._generate_obstacles(random.randint(2, 10))
         self._player.reset()
         self._draw_ui()
 
@@ -60,6 +60,8 @@ class Game:
         if button_pressed == 1:
             self.setup()
         elif button_pressed == 2:
+            info['won'] = False
+            done = True
             self.reset()
 
         info['won'] = self._won()
@@ -158,7 +160,7 @@ class Game:
             return -0.1
 
     def _observe(self):
-        observation = self._obstacle_area(1)
+        observation = self._obstacle_area(5)
 
         return observation
 

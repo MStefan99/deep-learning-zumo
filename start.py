@@ -13,8 +13,9 @@ game = Game(window, player, verbose=False)
 # You can see available values in the 'weights' folder.
 
 skip_training = False
-games_number = 1000
-
+games_number = 5000
+validation_games = 1000
+validation_max_steps = 25
 
 # If the snake gets to run in a loop, just click anywhere in the game window with a mouse.
 
@@ -23,12 +24,12 @@ def main():
     game.setup()
     # game.play()
 
-    # game.set_mode('random')
-    game.set_mode('manual')
+    game.set_mode('random')
 
     agent = DQNAgent(game, games_number, skip_training)
     agent.train(games_number)
-    game.set_mode('manual')
+    agent.validate(validation_games, validation_max_steps)
+    # game.set_mode('manual')
     agent.play()
 
 
