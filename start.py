@@ -22,6 +22,7 @@ validation_max_steps = 25
 
 def main():
     game.setup()
+    # game.play()
 
     game.set_mode('random')
 

@@ -160,9 +160,20 @@ class Game:
             return -0.1
 
     def _observe(self):
-        observation = self._obstacle_next()
+        observation = self._obstacle_area(5)
 
         return observation
+
+    def _obstacle_area(self, size):
+        obstacles = [0] * ((2 * size + 1) ** 2)
+        x, y = self._player.get_coords()
+
+        for i in range(2 * size + 1):
+            for j in range(2 * size + 1):
+                if self._is_obstacle((x - size + i, y - size + j)):
+                    obstacles[(2 * size + 1) * j + i] = 1
+
+        return obstacles
 
     def _obstacle_next(self):
         data = [0] * 4
