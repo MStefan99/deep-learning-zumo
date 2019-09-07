@@ -74,7 +74,7 @@ class DQNAgent:
                     log_process('Training, please wait...', game, games, 50,
                                 time_start=start, time_now=time(),
                                 info=f'{"Won" if won else "Lost"} in {steps} steps, '
-                                     f'Avg reward: {round(reward_total / game, 2) if game > 0 else 0}, '
+                                     f'Avg reward: {round(reward_total / game, 3) if game > 0 else 0}, '
                                      f'Epsilon: {round(self._epsilon, 2)}.')
 
     def replay(self, training_data):
@@ -110,7 +110,7 @@ class DQNAgent:
             else:
                 print('Warning, no model file found and default is unavailable! Playing with random model!')
 
-    def play(self):
+    def play(self, max_steps):
         self._game.set_window_mode('Visual')
         game = 0
         self._load_model()
@@ -118,21 +118,23 @@ class DQNAgent:
         while True:
             observation = self._game.reset()
             won = False
-            done = False
             steps = 0
 
-            while not done:
+            for step in range(max_steps):
                 action = np.argmax(self._model.predict(np.array(observation).reshape([-1, self._input_nodes])))
                 observation, reward, done, info = self._game.step(action)
 
                 if info['won']:
                     won = True
+                if done:
+                    print(f'Game {game} finished. {"Won" if won else "Lost"} in {steps} steps.')
+                    break
+                if step == max_steps - 1 and not done:
+                    print(f'Game {game} finished. Stuck into an infinite loop.')
 
                 self._game.delay()
                 steps += 1
-
             game += 1
-            print(f'Game {game} finished. {"Won" if won else "Lost"} in {steps} steps.')
 
     def validate(self, games, max_steps):
         games_won = 0

@@ -21,7 +21,7 @@ class Game:
 
     def new_random_game(self):
         self._obstacles = []
-        self._generate_obstacles(random.randint(2, 10))
+        self._generate_obstacles(2, 6)
         self._player.reset()
         self._draw_ui()
 
@@ -72,8 +72,6 @@ class Game:
         if self._verbose:
             print(f'Observation: {observation}, reward: {reward}, done: {done}, info: {info}')
 
-        if self._done() or self._won():
-            self.reset()
         return observation, reward, done, info
 
     def play(self):
@@ -113,13 +111,20 @@ class Game:
         else:
             return False
 
-    def _generate_obstacles(self, count):
+    def _generate_obstacles(self, min_count=4, max_count=4):
+        count = random.randint(min_count, max_count)
+        size = self._window.get_size()
+
         for _ in range(count):
-            x, y = random.randint(1, 5), random.randint(3, 8)
+            side = random.randint(0, 1)
+            if side:
+                x = random.randint(1, size[0] - 3)
+            else:
+                x = random.randint(2, size[0] - 2)
+            y = random.randint(2, size[1] - 3)
+
             self._add_obstacle((x, y))
-            direction = random.randint(0, 3)
-            if direction == 0:
-                y = y - 1
+            direction = random.randint(1, 3)
             if direction == 1:
                 x = x + 1
             if direction == 2:
@@ -160,7 +165,7 @@ class Game:
             return -0.1
 
     def _observe(self):
-        observation = self._obstacle_area(5)
+        observation = self._obstacle_area(6)
 
         return observation
 

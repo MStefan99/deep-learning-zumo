@@ -1,4 +1,4 @@
-# Time correction value is used for compensating the ETA if prediction is wrong.
+# Time correction value is used for compensating the displayed ETA if execution time is nonlinear.
 # ETA is multiplied by the correction value, value of 1.0 means no correction.
 
 
@@ -19,6 +19,6 @@ def log_process(text: str, done: int, total: int, size: int, accuracy=1, info: s
     if done == total - 1:
         end = '\n'
 
-    print(f'{start}{text}  [{done}/{total}] ' + eta + '  ▌■' +
+    print(f'{start}{text}  [Game {done} of {total}] ' + eta + '  ▌■' +
           '▬' * completed + '►' + ' ' * (size - completed) +
           '▐' + f'  {round(100 * done / total, accuracy)}%.  {info}', end=end)
