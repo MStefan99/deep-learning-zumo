@@ -16,7 +16,7 @@ def log_process(text: str, done: int, total: int, size: int, accuracy=1, info: s
             eta = f'ETA: {seconds}s'
     else:
         eta = ''
-    if done == total - 1:
+    if done == total:
         end = '\n'
 
     print(f'{start}{text}  [Game {done} of {total}] ' + eta + '  ▌■' +

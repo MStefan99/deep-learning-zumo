@@ -21,7 +21,7 @@ class Game:
 
     def new_random_game(self):
         self._obstacles = []
-        self._generate_obstacles(2, 6)
+        self._generate_obstacles(4)
         self._player.reset()
         self._draw_ui()
 
@@ -88,7 +88,9 @@ class Game:
                         action = 2
                     if event.key == pygame.K_LEFT:
                         action = 3
-                    self.step(action)
+                    _, _, done, info = self.step(action)
+                    if done:
+                        self.reset()
 
     def delay(self):
         self._window.delay()
@@ -112,11 +114,14 @@ class Game:
             return False
 
     def _generate_obstacles(self, min_count=4, max_count=4):
+        if max_count < min_count:
+            max_count = min_count
+
         count = random.randint(min_count, max_count)
         size = self._window.get_size()
+        side = random.randint(0, 1)
 
         for _ in range(count):
-            side = random.randint(0, 1)
             if side:
                 x = random.randint(1, size[0] - 3)
             else:
@@ -154,29 +159,31 @@ class Game:
         last_action = self._player.get_last_action()
 
         if won:
-            return 5
+            return 20
         elif lost:
-            return -1
+            return -10
         elif last_action == 0:
             return 0.1
         elif last_action == 2:
-            return -0.3
+            return -0.2
         else:
             return -0.1
 
     def _observe(self):
-        observation = self._obstacle_area(6)
+        size_x, size_y = self._window.get_size()
+        observation = self._obstacle_area(size_x, size_y)
 
         return observation
 
-    def _obstacle_area(self, size):
-        obstacles = [0] * ((2 * size + 1) ** 2)
+    def _obstacle_area(self, size_x, size_y):
+        obstacles = [0] * ((2 * size_x + 1) * (2 * size_y + 1))
         x, y = self._player.get_coords()
 
-        for i in range(2 * size + 1):
-            for j in range(2 * size + 1):
-                if self._is_obstacle((x - size + i, y - size + j)):
-                    obstacles[(2 * size + 1) * j + i] = 1
+        for i in range(2 * size_x + 1):
+            for j in range(2 * size_y + 1):
+                tile = (x - size_x + i, y - size_y + j)
+                if self._is_obstacle(tile):
+                    obstacles[(2 * size_x + 1) * j + i] = 1
 
         return obstacles
 
@@ -195,8 +202,8 @@ class Game:
         return data
 
     def _is_obstacle(self, tile):
-        if (tile[0] < 0 or tile[0] > self._window.get_dimensions()[0] - 1) \
-                or (tile[1] < 0 or tile[1] > self._window.get_dimensions()[1] - 1) \
+        if (tile[0] < 0 or tile[0] > self._window.get_size()[0] - 1) \
+                or tile[1] > self._window.get_size()[1] - 1 \
                 or tile in self._obstacles:
             return True
         else:

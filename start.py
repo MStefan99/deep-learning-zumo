@@ -8,14 +8,14 @@ player = Player(window)
 game = Game(window, player, verbose=False)
 
 # If skip_training value is true, a pre-made file with matching number of games will be automatically loaded,
-# if present. Otherwise the default file with 5000 games will be loaded.
+# if present. Otherwise the default file with 100000 games will be loaded.
 # You can see available values in the 'weights' folder.
 
-skip_training = False
-games_number = 10000
-validation_games = 1000
+skip_training = True
+games_number = 100000
+validation_games = 1500
 validation_max_steps = 50
-game_max_steps = 25
+game_max_steps = 20
 
 
 def main():
