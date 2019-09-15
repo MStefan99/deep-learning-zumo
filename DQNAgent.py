@@ -17,13 +17,12 @@ debug = False
 
 
 class DQNAgent:
-    def __init__(self, game: Game, games_number, skip_training=False):
+    def __init__(self, game: Game, skip_training=False):
         self._gamma = 0.95
         self._epsilon_start = 1.0
         self._epsilon = self._epsilon_start
         self._epsilon_min = 0.1
         self._learning_rate = 0.0005
-        self._games_number = games_number
         self._skip_training = skip_training
 
         self._game = game
@@ -32,13 +31,22 @@ class DQNAgent:
         self._model = self._build_model(self._input_nodes,
                                         self._output_nodes)
 
-    def train(self, games):
+    def train(self, start_games, model_games):
         if not self._skip_training:
-            print(f'Starting to train model on {games} games.')
+            print(f'=== TRAINING START ===')
+            if model_games < start_games:
+                print(f'Total number of games is smaller than the starting number. '
+                      f'Loading model trained on {start_games} games.')
+            elif self._load_model(start_games, False):
+                print(f'Continuing to train up to {model_games} games.')
+            else:
+                print(f'Starting to train model on {model_games} games.')
+                start_games = 0
+
             start = time()
             self._game.set_window_mode('Train')
 
-            for game in range(games):
+            for game in range(start_games, model_games):
                 won = False
                 steps = 0
                 reward_total = 0
@@ -47,7 +55,7 @@ class DQNAgent:
                 prev_observation = observation = self._game.reset()
 
                 if self._epsilon > self._epsilon_min:
-                    self._epsilon = self._epsilon_start * (1 - game / games)
+                    self._epsilon = self._epsilon_start * (1 - game / model_games)
 
                 while not done:
                     if random.uniform(0, 1) < self._epsilon:
@@ -65,18 +73,20 @@ class DQNAgent:
                     steps += 1
 
                 self._replay(training_data)
-                if game % (games // files) == games // files - 1:
+                if game % ((model_games - start_games) // files) == (model_games - start_games) // files - 1:
                     self._model.save_weights(f'{file_prefix}{game + 1}', overwrite=True)
 
                 if debug:
                     print(f'Game {game} finished. {"Won" if won else "Lost"} in {steps} steps, ' +
                           f'eps: {round(self._epsilon, 2)}')
                 else:
-                    log_process('Training, please wait...', game + 1, games, 50,
-                                time_start=start, time_now=time(), time_correction=1.5,
+                    log_process('Training, please wait...', game - start_games + 1, model_games - start_games, 50,
+                                time_start=start, time_now=time(), accuracy=2, time_correction=2,
                                 info=f'{"Won" if won else "Lost"} in {steps} steps, '
                                      f'Avg reward: {round(reward_total / game, 3) if game > 0 else 0}, '
                                      f'Epsilon: {round(self._epsilon, 2)}.')
+            print(f'Trained model on {model_games - start_games if model_games > start_games else 0} games.')
+            print(f'=== TRAINING END ===')
 
     def _replay(self, training_data):
         for prev_state, action, reward, state, done in training_data:
@@ -100,23 +110,33 @@ class DQNAgent:
 
         return model
 
-    def _load_model(self):
-        if self._skip_training:
-            if os.path.isfile(f'{file_prefix}{self._games_number}'):
-                self._model.load_weights(f'{file_prefix}{self._games_number}')
-                print(f'Model trained on {self._games_number} games successfully loaded.')
-            elif os.path.isfile(f'{file_prefix}{default_games}'):
-                print(f'Warning, no model file found! ' 
-                      f'Playing game with default model trained on {default_games} games.')
+    def _load_model(self, model_games, load_default=True):
+        if os.path.isfile(f'{file_prefix}{model_games}'):
+            self._model.load_weights(f'{file_prefix}{model_games}')
+            print(f'Model trained on {model_games} games successfully loaded.')
+            return True
+        elif os.path.isfile(f'{file_prefix}{default_games}'):
+            if load_default:
+                print(f'Warning, no model trained on {model_games} games found! ' 
+                      f'Loading default model trained on {default_games} games.')
                 self._model.load_weights(f'{file_prefix}{default_games}')
+                return True
             else:
-                print('Warning, no model file found and default is unavailable! Playing with random model!')
+                print(f'Warning, no model trained on {model_games} games found! '
+                      f'Default model won\'t be loaded. '
+                      f'Starting with a new model!')
+                return False
+        else:
+            print(f'Warning, no model trained on {model_games} and default is unavailable! '
+                  f'Starting with a new model!')
+            return False
 
-    def play(self, max_steps):
-        print(f'Starting to play the game with {max_steps} maximum steps.')
+    def play(self, model_games, max_steps):
+        print(f'=== GAME START ===')
+        print(f'Starting the game with model trained on {model_games} games with {max_steps} maximum steps.')
         self._game.set_window_mode('Visual')
         game = 0
-        self._load_model()
+        self._load_model(model_games)
 
         while True:
             observation = self._game.reset()
@@ -133,20 +153,21 @@ class DQNAgent:
                     print(f'Game {game + 1} finished. {"Won" if won else "Lost"} in {steps} steps.')
                     break
                 if step == max_steps - 1 and not done:
-                    print(f'Game {game + 1} finished. Stuck into an infinite loop.')
+                    print(f'Game {game + 1} finished. Number of allowed steps exceeded.')
 
                 self._game.delay()
                 steps += 1
             game += 1
 
-    def validate(self, games, max_steps):
-        print(f'Starting to validate model on {games} games with {max_steps} maximum steps.')
+    def validate(self, model_games, validation_games, max_steps):
+        print(f'=== VALIDATION START ===')
+        print(f'Starting to validate model trained on {validation_games} games with {max_steps} maximum steps.')
         games_won = 0
-        self._load_model()
+        self._load_model(model_games)
         start_time = time()
         self._game.set_window_mode('Train')
 
-        for game in range(games):
+        for game in range(validation_games):
             observation = self._game.reset()
 
             for step in range(max_steps):
@@ -158,8 +179,9 @@ class DQNAgent:
                 if done:
                     break
 
-            log_process('Validating...', game + 1, games, 50,
+            log_process('Validating...', game + 1, validation_games, 50,
                         time_start=start_time, time_now=time(),
-                        info=f'Current score: {round(100 * games_won / (game + 1) , 1)}%.')
+                        info=f'Current score: {round(100 * games_won / (game + 1) , 2)}%.')
 
-        print(f'Validation finished. Final score: {round(100 * games_won / games, 2)}%.')
+        print(f'Validation finished. Final score: {round(100 * games_won / validation_games, 4)}%.')
+        print(f'=== VALIDATION END ===')

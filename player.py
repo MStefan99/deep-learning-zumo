@@ -9,18 +9,23 @@ class Player:
         pygame.display.set_caption("THE GAME!")
         self._x, self._y = 0, 0
         self._action = 0
+        size = self._window.get_size()
+        self._prev_pos = [(size[0] // 2, size[1] - 1)] * 5
 
         self.reset()
 
     def reset(self):
         size = self._window.get_size()
-        self._x, self._y = size[0] // 2, size[1] - 1
+        pos = size[0] // 2, size[1] - 1
+        self._x, self._y = pos
+        self._prev_pos = [pos, self._prev_pos[0]]
 
     def get_coords(self):
         return self._x, self._y
 
     def move(self, action):
         self._action = action
+        self._prev_pos = [self.get_coords(), self._prev_pos[0]]
         if action == 0:
             self._y = self._y - 1
         if action == 1:
@@ -32,3 +37,6 @@ class Player:
 
     def get_last_action(self):
         return self._action
+
+    def get_prev_pos(self):
+        return self._prev_pos

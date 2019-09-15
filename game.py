@@ -66,6 +66,7 @@ class Game:
 
         info['won'] = self._won()
         info['coords'] = self._player.get_coords()
+        info['prev_pos'] = self._player.get_prev_pos()
         observation = self._observe()
         reward = self._get_reward()
 
@@ -159,19 +160,23 @@ class Game:
         last_action = self._player.get_last_action()
 
         if won:
-            return 20
+            return 50
         elif lost:
-            return -10
+            return -100
+        elif self._player.get_coords() == self._player.get_prev_pos()[1]:
+            return -50
         elif last_action == 0:
-            return 0.1
+            return 1 * (self._window.get_size()[1] - self._player.get_coords()[1])
         elif last_action == 2:
-            return -0.2
+            return -2
         else:
-            return -0.1
+            return -1
 
     def _observe(self):
         size_x, size_y = self._window.get_size()
         observation = self._obstacle_area(size_x, size_y)
+        observation.extend(self._prev_action())
+        observation.extend(self._player.get_coords())
 
         return observation
 
@@ -208,6 +213,18 @@ class Game:
             return True
         else:
             return False
+
+    def _prev_action(self):
+        data = [0] * 2
+        action = self._player.get_last_action()
+        if action == 1:
+            data[1] = 1
+        elif action == 2:
+            data[0] = 1
+        elif action == 3:
+            data[0] = data[1] = 1
+
+        return data
 
     def _draw_ui(self):
         self._window.clear()
