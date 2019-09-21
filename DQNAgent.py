@@ -11,7 +11,7 @@ from game import Game
 from log import log_process
 
 file_prefix = 'weights/weights_'
-default_games = 100000
+default_games = 10**7
 files = 5
 debug = False
 
@@ -127,7 +127,7 @@ class DQNAgent:
                       f'Starting with a new model!')
                 return False
         else:
-            print(f'Warning, no model trained on {model_games} and default is unavailable! '
+            print(f'Warning, no model trained on {model_games} games and default is unavailable! '
                   f'Starting with a new model!')
             return False
 
@@ -150,7 +150,7 @@ class DQNAgent:
                 if info['won']:
                     won = True
                 if done:
-                    print(f'Game {game + 1} finished. {"Won" if won else "Lost"} in {steps} steps.')
+                    print(f'Game {game + 1} finished. {"Won" if won else "Lost"} in {steps + 1} steps.')
                     break
                 if step == max_steps - 1 and not done:
                     print(f'Game {game + 1} finished. Number of allowed steps exceeded.')
