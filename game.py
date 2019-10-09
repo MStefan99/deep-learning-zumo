@@ -21,7 +21,7 @@ class Game:
 
     def new_random_game(self):
         self._obstacles = []
-        self._generate_obstacles(4)
+        self._generate_obstacles(10)
         self._player.reset()
         self._draw_ui()
 
@@ -129,7 +129,7 @@ class Game:
                 x = random.randint(2, size[0] - 2)
             y = random.randint(2, size[1] - 3)
 
-            self._add_obstacle((x, y))
+            self.add_obstacle((x, y))
             direction = random.randint(1, 3)
             if direction == 1:
                 x = x + 1
@@ -137,9 +137,9 @@ class Game:
                 y = y + 1
             if direction == 3:
                 x = x - 1
-            self._add_obstacle((x, y))
+            self.add_obstacle((x, y))
 
-    def _add_obstacle(self, tile):
+    def add_obstacle(self, tile):
         self._obstacles.append(tile)
 
     def _remove_obstacle(self, tile):
@@ -152,7 +152,7 @@ class Game:
         if tile in self._obstacles:
             self._remove_obstacle(tile)
         else:
-            self._add_obstacle(tile)
+            self.add_obstacle(tile)
 
     def _get_reward(self):
         lost = self._done()

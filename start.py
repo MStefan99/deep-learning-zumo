@@ -2,6 +2,7 @@ from DQNAgent import DQNAgent
 from player import Player
 from window import Window
 from game import Game
+from mqtt import Server
 
 debug = False
 
@@ -22,16 +23,12 @@ game_max_steps = 25
 
 
 def main():
-    game.setup()
-    game.set_mode('random')
+    game.set_mode('manual')
     if debug:
         game.play()
 
-    agent = DQNAgent(game, skip_training)
-    agent.train(games_start, games_total)
-    agent.validate(games_total, validation_games, validation_max_steps)
-    # game.set_mode('manual')
-    agent.play(games_total, game_max_steps)
+    server = Server("192.168.1.8", game, player)
+    server.play(games_total)
 
 
 if __name__ == '__main__':
