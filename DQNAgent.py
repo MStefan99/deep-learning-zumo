@@ -186,7 +186,6 @@ class DQNAgent:
         print(f'Validation finished. Final score: {round(100 * games_won / validation_games, 4)}%.')
         print(f'=== VALIDATION END ===')
 
-    def step(self, observation):
+    def predict(self, observation):
         action = np.argmax(self._model.predict(np.array(observation).reshape([-1, self._input_nodes])))
-        observation, reward, done, info = self._game.step(action)
-        return observation, reward, done, info, action
+        return action

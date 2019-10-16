@@ -24,9 +24,23 @@ class Server:
         self._client.loop_forever()
 
     def on_message(self, client, obj, msg):
-        if 'Move' in msg.topic:
-            if not self._done and (b'ok' in msg.payload or b'start' in msg.payload):
-                self._observation, reward, self._done, info, action = self._agent.step(self._observation)
+        if 'Start' in msg.topic:
+            self._game.reset()
+            self._player.reset()
+            self._history = []
+            self._observation = self._game.observe()
+            action = self._agent.predict(self._observation)
+            self._client.publish('Net/Action', int(action))
+
+        elif 'Coords' in msg.topic:
+            coords = self._player.get_coords()
+            self._client.publish('Net/Coords', f'{coords}')
+
+        elif 'Move' in msg.topic:
+            if not self._done and (b'ok' in msg.payload):
+                self._observation = self._game.observe()
+                action = self._agent.predict(self._observation)
+                _, _, self._done, _ = self._game.step(action)
                 if self._player.get_coords() in self._history:
                     self._repeated_actions += 1
                     if self._repeated_actions > 5:
@@ -35,12 +49,12 @@ class Server:
                 self._history.append(self._player.get_coords())
 
                 self._client.publish('Net/Action', int(action))
-            else:
-                self._client.publish("Net/Status", "Finish")
+            if self._done:
+                self._client.publish('Net/Status', 'Finish')
                 self._client.disconnect()
 
         elif 'Obst' in msg.topic:
             string = msg.payload.decode('utf-8')
-            obstacle = int(string[0]), int(string[3])
+            obstacle = tuple(map(int, string[1:-1].split(", ", 1)))
             self._game.add_obstacle(obstacle)
-            self._client.publish("Net/Status", "Obst ok")
+            self._client.publish('Net/Status', f'Obst ok {obstacle}')

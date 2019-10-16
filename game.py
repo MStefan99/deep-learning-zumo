@@ -25,14 +25,14 @@ class Game:
         self._player.reset()
         self._draw_ui()
 
-        return self._observe()
+        return self.observe()
 
     def new_manual_game(self):
         self._obstacles = self._obstacles_manual
         self._player.reset()
         self._draw_ui()
 
-        return self._observe()
+        return self.observe()
 
     def setup(self):
         self._window.set_state('Setup')
@@ -67,7 +67,7 @@ class Game:
         info['won'] = self._won()
         info['coords'] = self._player.get_coords()
         info['prev_pos'] = self._player.get_prev_pos()
-        observation = self._observe()
+        observation = self.observe()
         reward = self._get_reward()
 
         if self._verbose:
@@ -139,10 +139,10 @@ class Game:
                 x = x - 1
             self.add_obstacle((x, y))
 
-    def add_obstacle(self, tile):
+    def add_obstacle(self, tile):  # Should be private but needed for mqtt
         self._obstacles.append(tile)
 
-    def _remove_obstacle(self, tile):
+    def remove_obstacle(self, tile):  # Should be private but needed for mqtt
         self._obstacles.remove(tile)
 
     def _get_obstacles(self):
@@ -150,7 +150,7 @@ class Game:
 
     def _set_obstacle(self, tile):
         if tile in self._obstacles:
-            self._remove_obstacle(tile)
+            self.remove_obstacle(tile)
         else:
             self.add_obstacle(tile)
 
@@ -172,7 +172,7 @@ class Game:
         else:
             return -1
 
-    def _observe(self):
+    def observe(self):  # Should be private but needed for mqtt
         size_x, size_y = self._window.get_size()
         observation = self._obstacle_area(size_x, size_y)
         observation.extend(self._prev_action())
