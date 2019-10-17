@@ -37,7 +37,7 @@ class DQNAgent:
             if model_games < start_games:
                 print(f'Total number of games is smaller than the starting number. '
                       f'Loading model trained on {start_games} games.')
-            elif self._load_model(start_games, False):
+            elif self.load_model(start_games, False):
                 print(f'Continuing to train up to {model_games} games.')
             else:
                 print(f'Starting to train model on {model_games} games.')
@@ -110,7 +110,7 @@ class DQNAgent:
 
         return model
 
-    def _load_model(self, model_games, load_default=True):
+    def load_model(self, model_games, load_default=True):
         if os.path.isfile(f'{file_prefix}{model_games}'):
             self._model.load_weights(f'{file_prefix}{model_games}')
             print(f'Model trained on {model_games} games successfully loaded.')
@@ -136,7 +136,7 @@ class DQNAgent:
         print(f'Starting the game with model trained on {model_games} games with {max_steps} maximum steps.')
         self._game.set_window_mode('Visual')
         game = 0
-        self._load_model(model_games)
+        self.load_model(model_games)
 
         while True:
             observation = self._game.reset()
@@ -163,7 +163,7 @@ class DQNAgent:
         print(f'=== VALIDATION START ===')
         print(f'Starting to validate model trained on {validation_games} games with {max_steps} maximum steps.')
         games_won = 0
-        self._load_model(model_games)
+        self.load_model(model_games)
         start_time = time()
         self._game.set_window_mode('Train')
 
@@ -185,3 +185,7 @@ class DQNAgent:
 
         print(f'Validation finished. Final score: {round(100 * games_won / validation_games, 4)}%.')
         print(f'=== VALIDATION END ===')
+
+    def predict(self, observation):
+        action = np.argmax(self._model.predict(np.array(observation).reshape([-1, self._input_nodes])))
+        return action
