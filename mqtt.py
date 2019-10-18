@@ -23,7 +23,7 @@ class Server:
 
         print('Sending ready status')
         self._client.publish('Net/Status', 'Ready')
-        self._client.publish('Info/Net', f'Loaded model trained on {model_games} games')
+        self._client.publish('Info/Net/Load', f'Loaded model trained on {model_games} games')
         self._client.loop_forever()
 
     def on_message(self, client, obj, msg):
@@ -74,7 +74,7 @@ class Server:
 
                 if self._player.get_coords() in self._history:
                     self._repeated_actions += 1
-                    self._client.publish('Info/Net',
+                    self._client.publish('Info/Net/RA',
                                          f'Repeated actions: {self._repeated_actions}')
                     if self._repeated_actions > 5:
                         self._client.publish('Net/Status', 'Stuck')
