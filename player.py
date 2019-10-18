@@ -23,6 +23,9 @@ class Player:
     def get_coords(self):
         return self._x, self._y
 
+    def set_coords(self, tile):  # Required for mqtt
+        self._x, self._y = tile
+
     def move(self, action):
         self._action = action
         self._prev_pos = [self.get_coords(), self._prev_pos[0]]
