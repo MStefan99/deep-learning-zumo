@@ -95,6 +95,6 @@ class Server:
             print('Received obstacle info')
             string = msg.payload.decode('utf-8')
             obstacle = tuple(map(int, string[1:-1].split(", ", 1)))
-            self._game.add_obstacle(obstacle)
+            self._game.smart_add(obstacle)
             self._client.publish('Ack/Net', f'Obst {obstacle}')
             print(f'Sending obstacle {obstacle} acknowledgement')

@@ -98,6 +98,13 @@ class Game:
 
     def set_window_mode(self, mode):
         self._window.set_mode(mode)
+        
+    def _tile_in_window(self, tile):
+        if (0 <= tile[0] <= self._window.get_size()[0] - 1) \
+                and (0 <= tile[1] <= self._window.get_size()[1] - 1):
+            return True
+        else:
+            return False
 
     def _done(self):
         coords = self._player.get_coords()
@@ -129,7 +136,7 @@ class Game:
                 x = random.randint(2, size[0] - 2)
             y = random.randint(2, size[1] - 3)
 
-            self.add_obstacle((x, y))
+            self._add_obstacle((x, y))
             direction = random.randint(1, 3)
             if direction == 1:
                 x = x + 1
@@ -137,22 +144,41 @@ class Game:
                 y = y + 1
             if direction == 3:
                 x = x - 1
-            self.add_obstacle((x, y))
+            self._add_obstacle((x, y))
 
-    def add_obstacle(self, tile):  # Should be private but needed for mqtt
+    def _add_obstacle(self, tile):
         self._obstacles.append(tile)
 
-    def remove_obstacle(self, tile):  # Should be private but needed for mqtt
+    def _remove_obstacle(self, tile):
         self._obstacles.remove(tile)
+
+    def smart_add(self, tile):
+        pos = self._player.get_coords()
+        if pos[0] == tile[0]:
+            x = tile[0]
+            for y in range(min(pos[1], tile[1]), max(pos[1], tile[1])):
+                try:
+                    self._remove_obstacle((x, y))
+                except ValueError:
+                    pass
+        if pos[1] == tile[1]:
+            y = tile[1]
+            for x in range(min(pos[0], tile[0]), max(pos[0], tile[0])):
+                try:
+                    self._remove_obstacle((x, y))
+                except ValueError:
+                    pass
+        if self._tile_in_window(tile):
+            self._add_obstacle(tile)
 
     def _get_obstacles(self):
         return self._obstacles
 
     def _set_obstacle(self, tile):
         if tile in self._obstacles:
-            self.remove_obstacle(tile)
+            self._remove_obstacle(tile)
         else:
-            self.add_obstacle(tile)
+            self._add_obstacle(tile)
 
     def _get_reward(self):
         lost = self._done()
