@@ -42,11 +42,9 @@ class Server:
                 print('\nReceived robot ready confirmation')
                 self._client.publish('Ack/Net', 'Ready')
                 if not self._zumo_ready:
-                    self._observation = self._game.observe()
-                    action = self._agent.predict(self._observation)
-                    self._client.publish('Net/Action', int(action))
+                    self._client.publish('Net/Action', 0)
                     if self._verbose:
-                        print(f'Sending first order to execute action {action}')
+                        print('Sending first order to execute action 0')
                     else:
                         print('Sending first action order')
                 else:
@@ -89,14 +87,14 @@ class Server:
                 self._repeated_actions += 1
                 if self._verbose:
                     print(f'Repeated action {self._repeated_actions} time'
-                          f'{"s" if self._repeated_actions % 10 == 1 else ""}')
+                          f'{"s" if self._repeated_actions % 10 != 1 else ""}')
                 self._client.publish('Info/Net/RA',
                                      f'Repeated actions: {self._repeated_actions}')
                 if self._repeated_actions > 5:
                     self._client.publish('Net/Status', 'Stuck')
                     if self._verbose:
                         print(f'Repeated action {self._repeated_actions} time'
-                              f'{"s" if self._repeated_actions % 10 == 1 else ""}. '
+                              f'{"s" if self._repeated_actions % 10 != 1 else ""}. '
                               f'Sending stuck signal')
                     else:
                         print('Agent stuck. Sending stuck signal')

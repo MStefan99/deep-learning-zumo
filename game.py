@@ -148,6 +148,7 @@ class Game:
 
     def _add_obstacle(self, tile):
         self._obstacles.append(tile)
+        self._draw_ui()
 
     def _remove_obstacle(self, tile):
         self._obstacles.remove(tile)
@@ -156,14 +157,14 @@ class Game:
         pos = self._player.get_coords()
         if pos[0] == tile[0]:
             x = tile[0]
-            for y in range(min(pos[1], tile[1]), max(pos[1], tile[1])):
+            for y in range(min(pos[1], tile[1]), max(pos[1], tile[1]) + 1):
                 try:
                     self._remove_obstacle((x, y))
                 except ValueError:
                     pass
         if pos[1] == tile[1]:
             y = tile[1]
-            for x in range(min(pos[0], tile[0]), max(pos[0], tile[0])):
+            for x in range(min(pos[0], tile[0]), max(pos[0], tile[0]) + 1):
                 try:
                     self._remove_obstacle((x, y))
                 except ValueError:
