@@ -27,8 +27,10 @@ class Player:
         self._x, self._y = tile
 
     def move(self, action):
-        self._action = action
-        self._prev_pos = [self.get_coords(), self._prev_pos[0]]
+        if 0 <= action <= 3:
+            self._action = action
+            self._prev_pos = [self.get_coords(), self._prev_pos[0]]
+
         if action == 0:
             self._y = self._y - 1
         if action == 1:
