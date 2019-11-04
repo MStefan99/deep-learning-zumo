@@ -74,16 +74,16 @@ class Server:
 
         elif 'Move' in msg.topic:
             self._client.publish('Ack/Net', 'Move')
-            action = int(msg.payload.decode('utf-8'))
+            move = int(msg.payload.decode('utf-8'))
             if self._verbose:
-                print(f'Received confirmation of move {action}')
+                print(f'Received confirmation of move {move}')
             else:
                 print('Received move confirmation')
-            _, _, self._done, _ = self._game.step(action)
+            _, _, self._done, _ = self._game.step(move)
             self._observation = self._game.observe()
             action = self._agent.predict(self._observation)
 
-            if self._player.get_coords() in self._history:
+            if self._player.get_coords() in self._history and 0 <= move <= 3:
                 self._repeated_actions += 1
                 if self._verbose:
                     print(f'Repeated action {self._repeated_actions} time'
