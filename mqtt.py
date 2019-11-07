@@ -11,9 +11,10 @@ class Server:
         self._agent = DQNAgent(game, True)
         self._observation = self._game.reset()
         self._done = False
-        self._zumo_ready = False
         self._repeated_actions = 0
+        self._steps = 0
         self._history = []
+        self._version = 'v0.1'
 
         self._client.connect(host)
         self._client.subscribe('Zumo/#', 0)
@@ -30,28 +31,30 @@ class Server:
     def on_message(self, client, obj, msg):
         self._client.publish('Rec/Net', f'Rec on "{msg.topic}"')
 
-        if 'Status' in msg.topic:
-            if b'Boot' in msg.payload:
-                print('Received robot boot confirmation')
-                self._client.publish('Ack/Net', 'Boot')
-                self._client.publish('Net/Status', 'Ready')
-                if self._verbose:
-                    print('Sending ready status')
-
-            if b'Ready' in msg.payload:
-                print('\nReceived robot ready confirmation')
+        if 'Zumo/Status' == msg.topic:
+            if b'Ready' == msg.payload:
+                self._observation = self._game.reset()
+                self._done = False
+                self._steps = 0
+                self._repeated_actions = 0
+                self._history = []
+                print('\nReceived robot ready confirmation, new game started')
                 self._client.publish('Ack/Net', 'Ready')
-                if not self._zumo_ready:
-                    self._client.publish('Net/Action', 0)
-                    if self._verbose:
-                        print('Sending first order to execute action 0')
-                    else:
-                        print('Sending first action order')
-                else:
-                    print('Already sent first action order, skipping')
-                self._zumo_ready = True
+                self._client.publish('Net/Status', 'Ready')
 
-        elif 'Coords' in msg.topic:
+        elif 'Zumo/Version' == msg.topic:
+            self._client.publish('Ack/Net', 'Version')
+            self._client.publish('Net/Version', self._version)
+            version = msg.payload.decode('utf-8')
+            if self._version == version:
+                print(f'Found Zumo, version {version}')
+            else:
+                print(f'Zumo version mismatch: expected {self._version}, found {version}')
+                print('Stopping server to prevent conflicts')
+                self._client.publish('Info/Net/WARNING', 'Incompatible')
+                self._client.disconnect()
+
+        elif 'Zumo/Coords' == msg.topic:
             string = msg.payload.decode('utf-8')
             coords = tuple(map(int, string[1:-1].split(", ", 1)))
             if self._verbose:
@@ -61,8 +64,8 @@ class Server:
             self._player.set_coords(coords)
             self._client.publish('Ack/Net', f'Coords {coords} set')
 
-        elif 'Request' in msg.topic:
-            if b'Coords' in msg.topic:
+        elif 'Zumo/Request' == msg.topic:
+            if b'Coords' == msg.topic:
                 print('Received request of current coordinates')
                 self._client.publish('Ack/Net', 'Coords')
                 coords = self._player.get_coords()
@@ -72,7 +75,7 @@ class Server:
                 else:
                     print('Sending coordinates')
 
-        elif 'Move' in msg.topic:
+        elif 'Zumo/Move' == msg.topic:
             self._client.publish('Ack/Net', 'Move')
             move = int(msg.payload.decode('utf-8'))
             if self._verbose:
@@ -83,21 +86,24 @@ class Server:
             self._observation = self._game.observe()
             action = self._agent.predict(self._observation)
 
+            if 0 <= move <= 3:
+                self._steps += 1
+
             if self._player.get_coords() in self._history and 0 <= move <= 3:
                 self._repeated_actions += 1
                 if self._verbose:
-                    print(f'Repeated action {self._repeated_actions} time'
-                          f'{"s" if self._repeated_actions % 10 != 1 else ""}')
+                    print(f'Repeated action {self._repeated_actions} time(s)')
                 self._client.publish('Info/Net/RA',
                                      f'Repeated actions: {self._repeated_actions}')
                 if self._repeated_actions > 5:
                     self._client.publish('Net/Status', 'Stuck')
                     if self._verbose:
-                        print(f'Repeated action {self._repeated_actions} time'
-                              f'{"s" if self._repeated_actions % 10 != 1 else ""}. '
+                        print(f'Repeated action {self._repeated_actions} time(s). '
                               f'Sending stuck signal')
                     else:
                         print('Agent stuck. Sending stuck signal')
+                    self._client.publish('Info/Net/Status', f'Network stuck after '
+                                                            f'{self._steps - self._repeated_actions} steps')
                     self._client.disconnect()
 
             if not self._done:
@@ -111,9 +117,11 @@ class Server:
             if self._done:
                 print('Game complete. Sending finish status')
                 self._client.publish('Net/Status', 'Finish')
+                self._client.publish('Info/Net/Status', f'Game finished after {self._steps} step(s), '
+                                                        f'{self._repeated_actions} repeated')
                 self._client.disconnect()
 
-        elif 'Obst' in msg.topic:
+        elif 'Zumo/Obst' == msg.topic:
             string = msg.payload.decode('utf-8')
             obstacle = tuple(map(int, string[1:-1].split(", ", 1)))
             self._game.smart_add(obstacle)

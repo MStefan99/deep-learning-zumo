@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/deep-learning-zumo.iml" filepath="$PROJECT_DIR$/.idea/deep-learning-zumo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/deep-learning-zumo-server.iml" filepath="$PROJECT_DIR$/.idea/deep-learning-zumo-server.iml" />
     </modules>
   </component>
 </project>
