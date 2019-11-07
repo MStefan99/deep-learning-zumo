@@ -13,6 +13,7 @@ class Server:
         self._done = False
         self._repeated_actions = 0
         self._steps = 0
+        self._max_actions = 10
         self._version = 'v0.1'
 
         self._client.connect(host)
@@ -93,7 +94,7 @@ class Server:
                     print(f'Repeated action {self._repeated_actions} time(s)')
                 self._client.publish('Info/Net/RA',
                                      f'Repeated actions: {self._repeated_actions}')
-                if self._repeated_actions > 5:
+                if self._repeated_actions >= self._max_actions:
                     self._client.publish('Net/Status', 'Stuck')
                     if self._verbose:
                         print(f'Repeated action {self._repeated_actions} time(s). '
