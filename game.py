@@ -256,6 +256,7 @@ class Game:
     def _draw_ui(self):
         self._window.clear()
         self._window.render_menu()
+        self._window.draw_history(self._player.get_history())
         self._window.draw_obstacles(self._obstacles)
         self._window.draw_player(self._player)
         self._window.draw_finish()

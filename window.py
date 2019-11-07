@@ -95,3 +95,8 @@ class Window:
         for i in range(self._tiles_horizontal):
             x, y = self.tile_to_window_coords((i, 0))
             pygame.draw.rect(self._surface, color.dark_blue, (x, y, self._tile_width, self._tile_height))
+
+    def draw_history(self, history):
+        for tile in history:
+            x, y = self.tile_to_window_coords(tile)
+            pygame.draw.rect(self._surface, color.dark_green, (x, y, self._tile_width, self._tile_height))

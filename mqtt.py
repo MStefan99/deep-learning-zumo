@@ -13,7 +13,6 @@ class Server:
         self._done = False
         self._repeated_actions = 0
         self._steps = 0
-        self._history = []
         self._version = 'v0.1'
 
         self._client.connect(host)
@@ -37,7 +36,6 @@ class Server:
                 self._done = False
                 self._steps = 0
                 self._repeated_actions = 0
-                self._history = []
                 print('\nReceived robot ready confirmation, new game started')
                 self._client.publish('Ack/Net', 'Ready')
                 self._client.publish('Net/Status', 'Ready')
@@ -89,7 +87,7 @@ class Server:
             if 0 <= move <= 3:
                 self._steps += 1
 
-            if self._player.get_coords() in self._history and 0 <= move <= 3:
+            if self._player.get_coords() in self._player.get_history() and 0 <= move <= 3:
                 self._repeated_actions += 1
                 if self._verbose:
                     print(f'Repeated action {self._repeated_actions} time(s)')
@@ -107,7 +105,6 @@ class Server:
                     self._client.disconnect()
 
             if not self._done:
-                self._history.append(self._player.get_coords())
                 self._client.publish('Net/Action', int(action))
                 if self._verbose:
                     print(f'Sending an order to execute action {action}')

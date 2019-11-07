@@ -11,6 +11,7 @@ class Player:
         self._action = 0
         size = self._window.get_size()
         self._prev_pos = [(size[0] // 2, size[1] - 1)] * 5
+        self._history = []
 
         self.reset()
 
@@ -19,6 +20,7 @@ class Player:
         pos = size[0] // 2, size[1] - 1
         self._x, self._y = pos
         self._prev_pos = [pos, self._prev_pos[0]]
+        self._history = []
 
     def get_coords(self):
         return self._x, self._y
@@ -30,6 +32,7 @@ class Player:
         if 0 <= action <= 3:
             self._action = action
             self._prev_pos = [self.get_coords(), self._prev_pos[0]]
+            self._history.append(self.get_coords())
 
         if action == 0:
             self._y = self._y - 1
@@ -45,3 +48,6 @@ class Player:
 
     def get_prev_pos(self):
         return self._prev_pos
+
+    def get_history(self):
+        return self._history
