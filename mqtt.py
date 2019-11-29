@@ -46,9 +46,9 @@ class Server:
             self._client.publish('Ctrl/Net/Version', self._version)
             version = msg.payload.decode('utf-8')
             if self._version == version:
-                print(f'Found Zumo, version {version}')
+                print(f'\033[32mFound Zumo, version {version}\033[0m')
             else:
-                print(f'Zumo version mismatch: expected {self._version}, found {version}')
+                print(f'\033[31mZumo version mismatch: expected {self._version}, found {version}\033[0m')
                 print('Stopping server to prevent conflicts')
                 self._client.publish('Info/Net/WARNING', 'Incompatible')
                 self._client.disconnect()
@@ -100,7 +100,7 @@ class Server:
                         print(f'Repeated action {self._repeated_actions} time(s). '
                               f'Sending stuck signal')
                     else:
-                        print('Agent stuck. Sending stuck signal')
+                        print('\033[31mAgent stuck. Sending stuck signal\033[0m')
                     self._client.publish('Info/Net/Status', f'Network stuck after '
                                                             f'{self._steps - self._repeated_actions} steps')
                     self._client.disconnect()
@@ -113,7 +113,7 @@ class Server:
                     print('Sending next action order')
 
             if self._done:
-                print('Game complete. Sending finish status')
+                print('\033[32mGame complete. Sending finish status\033[0m')
                 self._client.publish('Ctrl/Net/Status', 'Finish')
                 self._client.publish('Info/Net/Status', f'Game finished after {self._steps} step(s), '
                                                         f'{self._repeated_actions} repeated')

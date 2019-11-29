@@ -15,11 +15,11 @@ class Game:
 
     def reset(self):
         if self._mode == 'random':
-            return self.new_random_game()
+            return self._new_random_game()
         else:
-            return self.new_manual_game()
+            return self._new_manual_game()
 
-    def new_random_game(self):
+    def _new_random_game(self):
         self._obstacles = []
         self._generate_obstacles(10)
         self._player.reset()
@@ -27,28 +27,31 @@ class Game:
 
         return self.observe()
 
-    def new_manual_game(self):
+    def _new_manual_game(self):
         self._obstacles = self._obstacles_manual
         self._player.reset()
         self._draw_ui()
 
         return self.observe()
 
-    def setup(self):
-        self._window.set_state('Setup')
-        self.new_manual_game()
-        while True:
-            button_pressed, pos = self._handle_buttons()
-            if button_pressed == 1:
-                self._window.set_state('Run')
-                return 0
-            elif button_pressed == 2:
-                self._obstacles = []
-            elif button_pressed == 3:
-                tile = self._window.window_coords_to_tile(pos)
-                self._set_obstacle(tile)
-            self._obstacles_manual = self._obstacles
-            self._draw_ui()
+    def setup(self, skip=False):
+        if not skip:
+            self._window.set_state('Setup')
+            self._new_manual_game()
+            while True:
+                button_pressed, pos = self._handle_buttons()
+                if button_pressed == 1:
+                    self._window.set_state('Run')
+                    return
+                elif button_pressed == 2:
+                    self.reset()
+                elif button_pressed == 3:
+                    tile = self._window.window_coords_to_tile(pos)
+                    self._set_obstacle(tile)
+                self._obstacles_manual = self._obstacles
+                self._draw_ui()
+        else:
+            self._window.set_state('Run')
 
     def step(self, action):
         info = {}

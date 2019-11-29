@@ -17,7 +17,7 @@ debug = False
 
 
 class DQNAgent:
-    def __init__(self, game: Game, skip_training=False):
+    def __init__(self, game: Game, skip_training=True):
         self._gamma = 0.95
         self._epsilon_start = 1.0
         self._epsilon = self._epsilon_start
@@ -150,10 +150,13 @@ class DQNAgent:
                 if info['won']:
                     won = True
                 if done:
-                    print(f'Game {game + 1} finished. {"Won" if won else "Lost"} in {steps + 1} steps.')
+                    if won:
+                        print(f'Game {game + 1} finished. Won in {steps + 1} steps.')
+                    else:
+                        print(f'\033[31mGame {game + 1} finished. Lost in {steps + 1} steps.\033[0m')
                     break
                 if step == max_steps - 1 and not done:
-                    print(f'Game {game + 1} finished. Number of allowed steps exceeded.')
+                    print(f'\033[31mGame {game + 1} finished. Number of allowed steps exceeded.\033[0m')
 
                 self._game.delay()
                 steps += 1
