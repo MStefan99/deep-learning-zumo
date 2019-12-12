@@ -3,7 +3,7 @@ from DQNAgent import DQNAgent
 
 
 class Server:
-    def __init__(self, host, game, player, verbose=False):
+    def __init__(self, host, game, player, max_steps=5, verbose=False):
         self._client = mqtt.Client()
         self._game = game
         self._player = player
@@ -13,7 +13,7 @@ class Server:
         self._done = False
         self._repeated_actions = 0
         self._steps = 0
-        self._max_actions = 10
+        self._max_actions = max_steps
         self._version = 'v0.1.1'
 
         self._client.connect(host)
@@ -88,23 +88,25 @@ class Server:
             if 0 <= move <= 3:
                 self._steps += 1
 
-            if self._player.get_coords() in self._player.get_history() and 0 <= move <= 3:
-                self._repeated_actions += 1
-                if self._verbose:
-                    print(f'Repeated action {self._repeated_actions} time(s)')
-                self._client.publish('Info/Net/RA',
-                                     f'Repeated actions: {self._repeated_actions}')
-                if self._repeated_actions >= self._max_actions:
-                    self._client.publish('Ctrl/Net/Status', 'Stuck')
+                if self._player.get_coords() in self._player.get_history() and 0 <= move <= 3:
+                    self._repeated_actions += 1
                     if self._verbose:
-                        print(f'Repeated action {self._repeated_actions} time(s). '
-                              f'Sending stuck signal')
-                    else:
-                        print('\033[31mAgent stuck. Sending stuck signal\033[0m')
-                    self._client.publish('Info/Net/Status', f'Network stuck after '
-                                                            f'{self._steps - self._repeated_actions} steps')
-                    self._client.disconnect()
-
+                        print(f'Repeated action {self._repeated_actions} time(s)')
+                    self._client.publish('Info/Net/RA',
+                                         f'Repeated actions: {self._repeated_actions}')
+                    if self._repeated_actions >= self._max_actions:
+                        self._client.publish('Ctrl/Net/Status', 'Stuck')
+                        if self._verbose:
+                            print(f'Repeated action {self._repeated_actions} time(s). '
+                                  f'Sending stuck signal')
+                        else:
+                            print('\033[31mAgent stuck. Sending stuck signal\033[0m')
+                        self._client.publish('Info/Net/Status', f'Network stuck after '
+                                                                f'{self._steps - self._repeated_actions} steps')
+                        self._client.disconnect()
+                else:
+                    self._repeated_actions = 0
+                    
             if not self._done:
                 self._client.publish('Ctrl/Net/Action', int(action))
                 if self._verbose:

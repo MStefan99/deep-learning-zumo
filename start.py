@@ -33,7 +33,7 @@ def main():
         game.play()
 
     if mqtt:
-        server = Server("192.168.1.8", game, player)
+        server = Server("127.0.0.1", game, player, verbose=True)
         server.play(games_total)
     else:
         game.set_mode('random')
