@@ -3,18 +3,16 @@ from DQNAgent import DQNAgent
 
 
 class Server:
-    def __init__(self, host, game, player, max_steps=5, verbose=False):
+    def __init__(self, host, game, player, max_steps=4, verbose=False):
         self._client = mqtt.Client()
         self._game = game
         self._player = player
         self._verbose = verbose
         self._agent = DQNAgent(game, True)
-        self._observation = self._game.reset()
-        self._done = False
         self._repeated_actions = 0
         self._steps = 0
         self._max_actions = max_steps
-        self._version = 'v0.1.1'
+        self._version = 'v0.1.2'
 
         self._client.connect(host)
         self._client.subscribe('Ctrl/Zumo/#', 0)
@@ -33,8 +31,6 @@ class Server:
 
         if 'Ctrl/Zumo/Status' == msg.topic:
             if b'Ready' == msg.payload:
-                self._observation = self._game.reset()
-                self._done = False
                 self._steps = 0
                 self._repeated_actions = 0
                 print('\nReceived robot ready confirmation, new game started')
@@ -81,9 +77,9 @@ class Server:
                 print(f'Received confirmation of move {move}')
             else:
                 print('Received move confirmation')
-            _, _, self._done, _ = self._game.step(move)
-            self._observation = self._game.observe()
-            action = self._agent.predict(self._observation)
+            _, _, done, info = self._game.step(move)
+            observation = self._game.observe()
+            action = self._agent.predict(observation)
 
             if 0 <= move <= 3:
                 self._steps += 1
@@ -96,29 +92,28 @@ class Server:
                                          f'Repeated actions: {self._repeated_actions}')
                     if self._repeated_actions >= self._max_actions:
                         self._client.publish('Ctrl/Net/Status', 'Stuck')
-                        if self._verbose:
-                            print(f'Repeated action {self._repeated_actions} time(s). '
-                                  f'Sending stuck signal')
-                        else:
-                            print('\033[31mAgent stuck. Sending stuck signal\033[0m')
+                        print('\033[31mAgent stuck. Sending stuck signal\033[0m')
                         self._client.publish('Info/Net/Status', f'Network stuck after '
                                                                 f'{self._steps - self._repeated_actions} steps')
                         self._client.disconnect()
                 else:
                     self._repeated_actions = 0
-                    
-            if not self._done:
+
+            if not done:
                 self._client.publish('Ctrl/Net/Action', int(action))
                 if self._verbose:
                     print(f'Sending an order to execute action {action}')
                 else:
                     print('Sending next action order')
-
-            if self._done:
-                print('\033[32mGame complete. Sending finish status\033[0m')
-                self._client.publish('Ctrl/Net/Status', 'Finish')
-                self._client.publish('Info/Net/Status', f'Game finished after {self._steps} step(s), '
-                                                        f'{self._repeated_actions} repeated')
+            else:
+                if info['won']:
+                    print('\033[32mGame complete. Sending finish status\033[0m')
+                    self._client.publish('Ctrl/Net/Status', 'Finish')
+                    self._client.publish('Info/Net/Status', f'Game finished after {self._steps} step(s)')
+                else:  # This can only happen if client fails to detect an obstacle
+                    print('\033[31mGame failed. Sending abort status\033[0m')
+                    self._client.publish('Ctrl/Net/Status', 'Abort')
+                    self._client.publish('Info/Net/Status', f'Game aborted after {self._steps} step(s)')
                 self._client.disconnect()
 
         elif 'Ctrl/Zumo/Obst' == msg.topic:
